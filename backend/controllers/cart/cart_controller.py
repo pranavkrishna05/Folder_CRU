@@ -40,13 +40,32 @@ def add_to_cart():
 def update_cart_item(item_id):
     data = request.get_json()
     quantity = data.get('quantity')
-
-    if not quantity:
-        return jsonify({"error": "Quantity is required"}), 400
+    
+    if quantity is None or quantity <= 0:
+        return jsonify({"error": "Quantity must be a positive integer"}), 400
 
     cart_repository = CartRepository(g.db)
+    item = cart_repository.get_cart_item_by_id(item_id)
+    if not item:
+        return jsonify({"error": "Cart item not found"}), 404
+    
+    cart_id = item['cart_id']
+    product_id = item['product_id']
+    old_quantity = item['quantity']
+    
+    product_repository = ProductRepository(g.db)
+    product = product_repository.get_product_by_id(product_id)
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+    
+    item_price = product['price']
+    new_total_price = item_price * (quantity - old_quantity)
+    
     cart_repository.update_cart_item(item_id, quantity)
-    return jsonify({"message": "Cart item updated successfully"}), 200
+    cart = cart_repository.get_cart_by_user_id(cart_id)
+    cart_repository.update_cart_total_price(cart_id, cart['total_price'] + new_total_price)
+    
+    return jsonify({"message": "Cart item quantity updated successfully"}), 200
 
 @cart_bp.route('/remove/<int:item_id>', methods=['DELETE'])
 def remove_cart_item(item_id):
