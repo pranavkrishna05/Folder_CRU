@@ -37,12 +37,15 @@ def update_product(product_id):
     product_repository = ProductRepository(g.db)
     category_repository = CategoryRepository(g.db)
     product_service = ProductService(product_repository, category_repository)
-    product_service.update_product(product_id, name, description, price, category_id)
-
-    return jsonify({"message": "Product updated successfully"}), 200
+    
+    try:
+        product_service.update_product(product_id, name, description, price, category_id)
+        return jsonify({"message": "Product updated successfully"}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
 @products_bp.route('/delete/<int:product_id>', methods=['DELETE'])
-def delete_product():
+def delete_product(product_id):
     product_repository = ProductRepository(g.db)
     category_repository = CategoryRepository(g.db)
     product_service = ProductService(product_repository, category_repository)
@@ -69,7 +72,6 @@ def get_product_details(product_id):
         "created_at": product.created_at.isoformat(),
         "updated_at": product.updated_at.isoformat()
     }), 200
-
 
 @products_bp.route('/', methods=['GET'])
 def get_all_products():
