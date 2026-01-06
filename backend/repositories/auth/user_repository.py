@@ -16,8 +16,8 @@ class UserRepository:
 
     def create_user(self, email: str, password: str) -> int:
         query = """
-        INSERT INTO users (email, password, created_at, updated_at, login_attempts, is_locked, last_login_at) 
-        VALUES (:email, :password, datetime('now'), datetime('now'), 0, 0, NULL)"""
+        INSERT INTO users (email, password, created_at, updated_at, login_attempts, is_locked, last_login_at, name, preferences) 
+        VALUES (:email, :password, datetime('now'), datetime('now'), 0, 0, NULL, NULL, NULL)"""
         result = self.db_session.execute(query, {"email": email, "password": password})
         self.db_session.commit()
         return result.lastrowid
@@ -60,4 +60,12 @@ class UserRepository:
         SET last_login_at = datetime('now'), updated_at = datetime('now') 
         WHERE id = :user_id"""
         self.db_session.execute(query, {"user_id": user_id})
+        self.db_session.commit()
+
+    def update_user_profile(self, user_id: int, name: Optional[str], preferences: Optional[str]) -> None:
+        query = """
+        UPDATE users 
+        SET name = :name, preferences = :preferences, updated_at = datetime('now') 
+        WHERE id = :user_id"""
+        self.db_session.execute(query, {"name": name, "preferences": preferences, "user_id": user_id})
         self.db_session.commit()
