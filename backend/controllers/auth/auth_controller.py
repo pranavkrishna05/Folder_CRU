@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify, g
 from backend.repositories.auth.user_repository import UserRepository
 from backend.repositories.auth.session_repository import SessionRepository
+from backend.repositories.auth.password_reset_repository import PasswordResetRepository
 from backend.services.auth.user_service import UserService
+from backend.services.auth.password_reset_service import PasswordResetService
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -73,3 +75,40 @@ def logout():
 
     user_service.terminate_session(token)
     return jsonify({"message": "Logged out successfully"}), 200
+
+@auth_bp.route('/request-password-reset', methods=['POST'])
+def request_password_reset():
+    data = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
+    user_repository = UserRepository(g.db)
+    password_reset_repository = PasswordResetRepository(g.db)
+    password_reset_service = PasswordResetService(password_reset_repository, user_repository)
+
+    try:
+        token = password_reset_service.request_password_reset(email)
+        return jsonify({"message": "Password reset requested", "token": token}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+@auth_bp.route('/reset-password', methods=['POST'])
+def reset_password():
+    data = request.get_json()
+    token = data.get('token')
+    new_password = data.get('password')
+
+    if not token or not new_password:
+        return jsonify({"error": "Token and new password are required"}), 400
+
+    password_reset_repository = PasswordResetRepository(g.db)
+    user_repository = UserRepository(g.db)
+    password_reset_service = PasswordResetService(password_reset_repository, user_repository)
+
+    try:
+        password_reset_service.reset_password(token, new_password)
+        return jsonify({"message": "Password reset successful"}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
