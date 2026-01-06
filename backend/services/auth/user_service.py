@@ -75,3 +75,7 @@ class UserService:
 
     def terminate_session(self, token: str) -> None:
         self.session_repository.delete_session(token)
+
+    def update_profile(self, user_id: int, name: Optional[str], preferences: Optional[str]) -> None:
+        self.user_repository.update_user_profile(user_id, name, preferences)
+        self.logger.info("User profile updated for user_id: %d", user_id)
