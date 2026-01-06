@@ -5,24 +5,24 @@ class ProductRepository:
         self.db_session = db_session
 
     def get_product_by_id(self, product_id: int) -> Optional[dict]:
-        query = "SELECT * FROM products WHERE id = :product_id"
+        query = "SELECT * FROM products WHERE id = :product_id AND is_active = 1"
         result = self.db_session.execute(query, {"product_id": product_id}).fetchone()
         return dict(result) if result else None
 
     def get_product_by_name(self, name: str) -> Optional[dict]:
-        query = "SELECT * FROM products WHERE name = :name"
+        query = "SELECT * FROM products WHERE name = :name AND is_active = 1"
         result = self.db_session.execute(query, {"name": name}).fetchone()
         return dict(result) if result else None
 
     def get_all_products(self) -> list[dict]:
-        query = "SELECT * FROM products"
+        query = "SELECT * FROM products WHERE is_active = 1"
         result = self.db_session.execute(query).fetchall()
         return [dict(row) for row in result]
 
     def create_product(self, name: str, description: str, price: float, category_id: int) -> int:
         query = """
-        INSERT INTO products (name, description, price, category_id, created_at, updated_at) 
-        VALUES (:name, :description, :price, :category_id, datetime('now'), datetime('now'))"""
+        INSERT INTO products (name, description, price, category_id, created_at, updated_at, is_active) 
+        VALUES (:name, :description, :price, :category_id, datetime('now'), datetime('now'), 1)"""
         result = self.db_session.execute(query, {"name": name, "description": description, "price": price, "category_id": category_id})
         self.db_session.commit()
         return result.lastrowid
@@ -47,11 +47,11 @@ class ProductRepository:
             query = f"""
             UPDATE products 
             SET {', '.join(update_fields)}, updated_at = datetime('now') 
-            WHERE id = :product_id"""
+            WHERE id = :product_id AND is_active = 1"""
             self.db_session.execute(query, params)
             self.db_session.commit()
 
     def delete_product(self, product_id: int) -> None:
-        query = "DELETE FROM products WHERE id = :product_id"
+        query = "UPDATE products SET is_active = 0, updated_at = datetime('now') WHERE id = :product_id"
         self.db_session.execute(query, {"product_id": product_id})
         self.db_session.commit()
