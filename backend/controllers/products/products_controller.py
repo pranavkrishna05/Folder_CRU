@@ -46,6 +46,10 @@ def update_product(product_id):
 
 @products_bp.route('/delete/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
+    confirm = request.args.get('confirm')
+    if not confirm or confirm.lower() != 'true':
+        return jsonify({"error": "Deletion confirmation required"}), 400
+
     product_repository = ProductRepository(g.db)
     category_repository = CategoryRepository(g.db)
     product_service = ProductService(product_repository, category_repository)
