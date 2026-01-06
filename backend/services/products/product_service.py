@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 import logging
 from backend.repositories.products.product_repository import ProductRepository
 from backend.repositories.products.category_repository import CategoryRepository
@@ -59,4 +59,8 @@ class ProductService:
 
     def get_all_products(self) -> list[Product]:
         products_data = self.product_repository.get_all_products()
+        return [Product(**data) for data in products_data]
+
+    def search_products(self, search_term: str, limit: int, offset: int) -> List[Product]:
+        products_data = self.product_repository.get_products_by_search(search_term, limit, offset)
         return [Product(**data) for data in products_data]
