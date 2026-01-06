@@ -112,3 +112,19 @@ def reset_password():
         return jsonify({"message": "Password reset successful"}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+
+@auth_bp.route('/profile', methods=['PATCH'])
+def update_profile():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    name = data.get('name')
+    preferences = data.get('preferences')
+
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+
+    user_repository = UserRepository(g.db)
+    user_service = UserService(user_repository, None)
+
+    user_service.update_profile(user_id, name, preferences)
+    return jsonify({"message": "Profile updated successfully"}), 200
