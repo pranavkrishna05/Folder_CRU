@@ -117,3 +117,48 @@ def search_products():
         "created_at": product.created_at.isoformat(),
         "updated_at": product.updated_at.isoformat()
     } for product in products]), 200
+
+@products_bp.route('/categories', methods=['GET'])
+def get_all_categories():
+    category_repository = CategoryRepository(g.db)
+    categories = category_repository.get_all_categories()
+    return jsonify(categories), 200
+
+@products_bp.route('/categories/add', methods=['POST'])
+def add_category():
+    data = request.get_json()
+    name = data.get('name')
+    parent_id = data.get('parent_id')
+
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+
+    category_repository = CategoryRepository(g.db)
+
+    try:
+        category_id = category_repository.create_category(name, parent_id)
+        return jsonify({"category_id": category_id}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@products_bp.route('/categories/update/<int:category_id>', methods=['PATCH'])
+def update_category(category_id):
+    data = request.get_json()
+    name = data.get('name')
+    parent_id = data.get('parent_id')
+
+    category_repository = CategoryRepository(g.db)
+    try:
+        category_repository.update_category(category_id, name, parent_id)
+        return jsonify({"message": "Category updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@products_bp.route('/categories/delete/<int:category_id>', methods=['DELETE'])
+def delete_category(category_id):
+    category_repository = CategoryRepository(g.db)
+    try:
+        category_repository.delete_category(category_id)
+        return jsonify({"message": "Category deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
