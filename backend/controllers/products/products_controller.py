@@ -93,3 +93,27 @@ def get_all_products():
         "created_at": product.created_at.isoformat(),
         "updated_at": product.updated_at.isoformat()
     } for product in products]), 200
+
+@products_bp.route('/search', methods=['GET'])
+def search_products():
+    search_term = request.args.get('q')
+    limit = int(request.args.get('limit', 10))
+    offset = int(request.args.get('offset', 0))
+
+    if not search_term:
+        return jsonify({"error": "Search term is required"}), 400
+
+    product_repository = ProductRepository(g.db)
+    category_repository = CategoryRepository(g.db)
+    product_service = ProductService(product_repository, category_repository)
+
+    products = product_service.search_products(search_term, limit, offset)
+    return jsonify([{
+        "id": product.id,
+        "name": product.name,
+        "description": product.description,
+        "price": product.price,
+        "category_id": product.category_id,
+        "created_at": product.created_at.isoformat(),
+        "updated_at": product.updated_at.isoformat()
+    } for product in products]), 200
