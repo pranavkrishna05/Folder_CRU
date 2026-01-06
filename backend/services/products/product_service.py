@@ -1,7 +1,7 @@
 from typing import Optional
 import logging
 from backend.repositories.products.product_repository import ProductRepository
-from backend.repositories.products.category_repository import CategoryRepository 
+from backend.repositories.products.category_repository import CategoryRepository
 from backend.models.product import Product
 
 class ProductService:
@@ -49,7 +49,7 @@ class ProductService:
     def delete_product(self, product_id: int) -> None:
         self.product_repository.delete_product(product_id)
         self.logger.info("Product deleted with ID: %d", product_id)
-
+    
     def get_product_details(self, product_id: int) -> Optional[Product]:
         product_data = self.product_repository.get_product_by_id(product_id)
         if not product_data:
