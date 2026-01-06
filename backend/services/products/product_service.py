@@ -1,7 +1,7 @@
 from typing import Optional
 import logging
 from backend.repositories.products.product_repository import ProductRepository
-from backend.repositories.products.category_repository import CategoryRepository
+from backend.repositories.products.category_repository import CategoryRepository 
 from backend.models.product import Product
 
 class ProductService:
@@ -11,11 +11,9 @@ class ProductService:
         self.logger = logging.getLogger(__name__)
 
     def validate_product_data(self, name: str, description: str, price: float) -> bool:
-        if not name:
+        if not name or not price or not isinstance(price, (int, float)) or price <= 0:
             return False
         if not description:
-            return False
-        if price <= 0:
             return False
         return True
 
@@ -34,6 +32,17 @@ class ProductService:
         return product_id
 
     def update_product(self, product_id: int, name: Optional[str], description: Optional[str], price: Optional[float], category_id: Optional[int]) -> None:
+        existing_product = self.product_repository.get_product_by_id(product_id)
+        if not existing_product:
+            self.logger.error("Product ID %d does not exist", product_id)
+            raise ValueError("Product ID does not exist")
+        
+        if name and existing_product["name"] != name:
+            other_product = self.product_repository.get_product_by_name(name)
+            if other_product:
+                self.logger.error("Product name %s already exists", name)
+                raise ValueError("Product name already exists")
+        
         self.product_repository.update_product(product_id, name, description, price, category_id)
         self.logger.info("Product updated with ID: %d", product_id)
 
