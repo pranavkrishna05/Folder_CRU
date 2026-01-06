@@ -63,3 +63,8 @@ class CartRepository:
         WHERE id = :cart_id"""
         self.db_session.execute(query, {"total_price": total_price, "cart_id": cart_id})
         self.db_session.commit()
+
+    def get_cart_item_by_id(self, item_id: int) -> Optional[dict]:
+        query = "SELECT * FROM cart_items WHERE id = :item_id"
+        result = self.db_session.execute(query, {"item_id": item_id}).fetchone()
+        return dict(result) if result else None
