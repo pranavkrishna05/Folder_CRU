@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 class ProductRepository:
     def __init__(self, db_session):
@@ -17,6 +17,14 @@ class ProductRepository:
     def get_all_products(self) -> list[dict]:
         query = "SELECT * FROM products WHERE is_active = 1"
         result = self.db_session.execute(query).fetchall()
+        return [dict(row) for row in result]
+
+    def get_products_by_search(self, search_term: str, limit: int, offset: int) -> List[dict]:
+        query = """
+        SELECT * FROM products 
+        WHERE (name LIKE :search_term OR description LIKE :search_term) AND is_active = 1 
+        LIMIT :limit OFFSET :offset"""
+        result = self.db_session.execute(query, {"search_term": f"%{search_term}%", "limit": limit, "offset": offset}).fetchall()
         return [dict(row) for row in result]
 
     def create_product(self, name: str, description: str, price: float, category_id: int) -> int:
