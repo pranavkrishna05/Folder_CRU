@@ -16,8 +16,8 @@ class UserRepository:
 
     def create_user(self, email: str, password: str) -> int:
         query = """
-        INSERT INTO users (email, password, created_at, updated_at) 
-        VALUES (:email, :password, datetime('now'), datetime('now'))"""
+        INSERT INTO users (email, password, created_at, updated_at, login_attempts, is_locked, last_login_at) 
+        VALUES (:email, :password, datetime('now'), datetime('now'), 0, 0, NULL)"""
         result = self.db_session.execute(query, {"email": email, "password": password})
         self.db_session.commit()
         return result.lastrowid
@@ -28,4 +28,36 @@ class UserRepository:
         SET password = :password, updated_at = datetime('now') 
         WHERE id = :user_id"""
         self.db_session.execute(query, {"password": password, "user_id": user_id})
+        self.db_session.commit()
+
+    def increment_login_attempts(self, user_id: int) -> None:
+        query = """
+        UPDATE users 
+        SET login_attempts = login_attempts + 1, updated_at = datetime('now') 
+        WHERE id = :user_id"""
+        self.db_session.execute(query, {"user_id": user_id})
+        self.db_session.commit()
+
+    def reset_login_attempts(self, user_id: int) -> None:
+        query = """
+        UPDATE users 
+        SET login_attempts = 0, updated_at = datetime('now') 
+        WHERE id = :user_id"""
+        self.db_session.execute(query, {"user_id": user_id})
+        self.db_session.commit()
+
+    def lock_user(self, user_id: int) -> None:
+        query = """
+        UPDATE users 
+        SET is_locked = 1, updated_at = datetime('now') 
+        WHERE id = :user_id"""
+        self.db_session.execute(query, {"user_id": user_id})
+        self.db_session.commit()
+
+    def update_last_login(self, user_id: int) -> None:
+        query = """
+        UPDATE users 
+        SET last_login_at = datetime('now'), updated_at = datetime('now') 
+        WHERE id = :user_id"""
+        self.db_session.execute(query, {"user_id": user_id})
         self.db_session.commit()
